@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cyber Awareness Platform</title>
+    <style>
+      :root { font-family: Inter, "Segoe UI", sans-serif; color: #17233a; background: #f3f6fb; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 5vw; color: white; background: #102a43; }
+      header h1, h2, h3 { margin-top: 0; }
+      header h1 { margin-bottom: 4px; font-size: 1.45rem; }
+      header p { margin: 0; color: #c7d8e8; }
+      [hidden] { display: none !important; }
+      .wrap { max-width: 1120px; margin: 24px auto; padding: 0 20px; }
+      .panel, .card { background: white; border: 1px solid #d9e2ec; border-radius: 12px; box-shadow: 0 2px 10px #102a4310; }
+      .panel { padding: 20px; margin-bottom: 22px; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .wide { grid-column: 1 / -1; }
+      label { display: grid; gap: 6px; font-size: .9rem; font-weight: 650; }
+      input, textarea { width: 100%; padding: 10px; font: inherit; border: 1px solid #bcccdc; border-radius: 7px; }
+      textarea { min-height: 86px; resize: vertical; }
+      button, .button { display: inline-block; padding: 9px 13px; color: white; font: inherit; font-weight: 650; text-decoration: none; cursor: pointer; background: #147d92; border: 0; border-radius: 7px; }
+      button.secondary { background: #486581; }
+      button.approve { background: #287d3c; }
+      button.unapprove { background: #8a6116; }
+      button.schedule { background: #5b4bb7; }
+      button.send, button.delete { background: #9b3b18; }
+      button.delete { margin-left: auto; }
+      button:disabled, input:disabled, textarea:disabled { cursor: not-allowed; opacity: .5; }
+      .auth-controls, .actions, .dialog-header, .versions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+      .auth-controls { justify-content: flex-end; }
+      .auth-identity { display: grid; text-align: right; }
+      .auth-identity small { color: #c7d8e8; }
+      .cards { display: grid; gap: 14px; }
+      .card { padding: 18px; }
+      .top { display: flex; justify-content: space-between; gap: 12px; }
+      .top h3 { margin-bottom: 6px; }
+      .badge { display: inline-block; height: min-content; padding: 5px 9px; font-size: .75rem; background: #e6edf5; border-radius: 99px; }
+      .summary { padding: 12px 14px; margin: 14px 0; background: #f8fafc; border-left: 3px solid #9fb3c8; }
+      .schedule-controls { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+      .schedule-controls label { min-width: min(260px, 100%); }
+      .schedule-controls input { min-height: 39px; }
+      .schedule-summary { margin: 0 0 14px; }
+      .muted { color: #627d98; font-size: .88rem; }
+      .error { color: #a61b1b; white-space: pre-wrap; }
+      .success { color: #287d3c; }
+      dialog { width: min(1240px, calc(100% - 24px)); height: min(900px, calc(100% - 24px)); padding: 0; overflow: hidden; border: 0; border-radius: 14px; box-shadow: 0 18px 60px #102a4355; }
+      dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+      dialog::backdrop { background: #102a4388; }
+      .dialog-header { justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #d9e2ec; }
+      .dialog-header h2 { margin: 0; }
+      .studio { display: grid; grid-template-columns: minmax(360px, 1.1fr) minmax(360px, .9fr); min-height: 0; overflow: hidden; }
+      .poster-pane { display: flex; flex-direction: column; min-height: 0; padding: 18px; background: #eef2f6; overflow-y: auto;}
+      .poster-wrap { display: grid; flex: 1; place-items: center;}
+      .poster-preview { max-width: 100%; max-height: 100%; object-fit: contain; background: white; border: 1px solid #d9e2ec; box-shadow: 0 5px 20px #102a4325; }
+      .empty-poster { padding: 40px; color: #627d98; text-align: center; }
+      .version-button { color: #17233a; background: white; border: 1px solid #bcccdc; }
+      .version-button.selected { color: white; background: #287d3c; border-color: #287d3c; }
+      .studio-sidebar { display: flex; flex-direction: column; min-height: 0; overflow: hidden; border-left: 1px solid #d9e2ec; }
+      .chat { display: grid; grid-template-rows: minmax(120px, 1fr) auto; flex: 1; min-height: 0; overflow: hidden; }
+      .messages { min-height: 0; padding: 16px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: #f8fafc; }
+      .message { max-width: 88%; padding: 10px 12px; margin-bottom: 10px; white-space: pre-wrap; background: white; border: 1px solid #d9e2ec; border-radius: 10px; }
+      .message.user { margin-left: auto; color: white; background: #147d92; border-color: #147d92; }
+      .message small { display: block; margin-top: 5px; opacity: .7; }
+      .studio-controls { max-height: min(430px, 58vh); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: white; border-top: 1px solid #d9e2ec; padding-left: 14px; padding-right: 14px;}
+      .chat-form, .recipient-form { display: grid; gap: 9px; padding-top: 14px; }
+      .recipient-form { border-top: 1px solid #d9e2ec; }
+      .chat-form textarea { min-height: 72px; }
+      .recipient-form textarea { min-height: 82px; }
+      .chat-help { display: block; margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; }
+      .form-feedback { min-height: 1.25em; margin: 0; }
+      .loading { animation: pulse 1.2s infinite; }
+      @keyframes pulse { 50% { opacity: .45; } }
+      @media (max-width: 800px) {
+        header, .top { align-items: flex-start; flex-direction: column; }
+        .auth-controls, .auth-identity { justify-content: flex-start; text-align: left; }
+        .grid, .studio { grid-template-columns: 1fr; }
+        .wide { grid-column: auto; }
+        dialog { height: calc(100% - 12px); }
+        .studio { overflow-y: auto; }
+        .poster-pane { min-height: 520px; }
+        .studio-sidebar { height: min(680px, calc(100dvh - 90px)); min-height: 460px; overflow: hidden; border-left: 0; }
+        .studio-controls { max-height: min(430px, 58vh); }
+        button.delete { margin-left: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Cyber Awareness Platform</h1>
+        <p>Create, revise, approve, and send Azure OpenAI posters</p>
+      </div>
+      <div id="auth-controls" class="auth-controls"></div>
+    </header>
+
+    <main class="wrap">
+      <section id="sign-in-panel" class="panel" hidden>
+        <h2>Employee sign-in required</h2>
+        <p>Sign in with your Megawide Microsoft account to continue.</p>
+        <a class="button" href="/auth/login">Sign in with Microsoft</a>
+        <p id="auth-error" class="error"></p>
+      </section>
+
+      <div id="app-content" hidden>
+        <section class="panel">
+          <h2>Create campaign</h2>
+          <form id="create-form" class="grid">
+            <label>Topic<input name="topic" required value="QR code phishing"></label>
+            <label>Audience label<input name="audience_name" required value="Pilot users"></label>
+            <label class="wide">Recipient emails (comma or line separated)<textarea name="recipients" required>pilot.user@example.com</textarea></label>
+            <label class="wide">Initial creative direction (optional)<textarea name="additional_prompt" maxlength="2000" placeholder="Example: Use a red-and-white construction theme and emphasize reporting."></textarea></label>
+            <div><button type="submit">Create and generate poster</button></div>
+          </form>
+          <p id="message" aria-live="polite"></p>
+        </section>
+
+        <section>
+          <h2>Campaigns</h2>
+          <div id="campaigns" class="cards"></div>
+        </section>
+      </div>
+    </main>
+
+    <dialog id="studio-dialog">
+      <div class="dialog-header">
+        <div><h2 id="studio-title">Poster studio</h2><span id="studio-status" class="badge"></span></div>
+        <button type="button" class="secondary" id="close-studio">Close</button>
+      </div>
+      <div class="studio">
+        <section class="poster-pane">
+          <div id="version-list" class="versions"></div>
+          <p id="selected-version-note" class="muted"></p>
+          <div id="poster-wrap" class="poster-wrap"></div>
+        </section>
+        <section class="studio-sidebar">
+          <div class="chat">
+            <div id="messages" class="messages"></div>
+            <div class="studio-controls">
+              <form id="chat-form" class="chat-form">
+                <label>Tell Azure OpenAI what to create or change
+                  <textarea name="prompt" maxlength="4000" required placeholder="Example: Make the title shorter, use five cards, and add more red accents."></textarea>
+                </label>
+                <div><button type="submit">Generate new version</button></div>
+                <p class="chat-help muted">Every response is saved as a separate poster version.</p>
+              </form>
+              <form id="recipient-form" class="recipient-form">
+                <label>Recipient emails (comma or line separated)
+                  <textarea name="recipients" required></textarea>
+                </label>
+                <div><button type="submit" class="secondary">Save recipients</button></div>
+                <p class="chat-help muted">Changing recipients clears approval and any existing schedule.</p>
+                <p id="recipient-feedback" class="form-feedback" aria-live="polite"></p>
+              </form>
+            </div>
+          </div>
+        </section>
+      </div>
+    </dialog>
+
+    <script>
+      const api = "/api/campaigns";
+      const campaignsElement = document.querySelector("#campaigns");
+      const messageElement = document.querySelector("#message");
+      const studioDialog = document.querySelector("#studio-dialog");
+      let campaignsById = new Map();
+      let studioCampaignId = null;
+      let csrfToken = "";
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>'"]/g, character => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[character]);
+      }
+
+      async function request(url, options = {}) {
+        const method = (options.method || "GET").toUpperCase();
+        const headers = new Headers(options.headers || {});
+        if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+        if (!["GET", "HEAD", "OPTIONS"].includes(method) && csrfToken) headers.set("X-CSRF-Token", csrfToken);
+        const response = await fetch(url, { credentials: "same-origin", ...options, headers });
+        if (!response.ok) {
+          let detail;
+          try { detail = (await response.json()).detail; } catch { detail = await response.text(); }
+          const error = new Error(detail || response.statusText); error.status = response.status; throw error;
+        }
+        return response.status === 204 ? null : response.json();
+      }
+
+      function button(id, action, label, enabled, className = "secondary") {
+        return `<button type="button" class="${className}" data-id="${id}" data-action="${action}" ${enabled ? "" : "disabled"}>${label}</button>`;
+      }
+
+      function localDateTimeValue(date = new Date(Date.now() + 60 * 60 * 1000)) {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+        return local.toISOString().slice(0, 16);
+      }
+
+      function formatDateTime(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+      }
+
+      function scheduleControls(c) {
+        if (c.status === "SCHEDULED") {
+          return `<p class="schedule-summary"><strong>Scheduled send:</strong> ${escapeHtml(formatDateTime(c.scheduled_for))}</p>`;
+        }
+        if (c.status !== "APPROVED") return "";
+        const minimum = localDateTimeValue(new Date(Date.now() + 60 * 1000));
+        return `<div class="schedule-controls">
+          <label>Send later
+            <input type="datetime-local" data-schedule-for="${escapeHtml(c.id)}" min="${minimum}" value="${localDateTimeValue()}">
+          </label>
+          ${button(c.id, "schedule", "Schedule send", true, "schedule")}
+        </div>`;
+      }
+
+      function renderCampaign(c) {
+        const isGenerating = c.status === "GENERATING";
+        const approval = ["APPROVED", "SCHEDULED"].includes(c.status)
+          ? button(c.id, "unapprove", "Unapprove", true, "unapprove")
+          : button(c.id, "approve", "Approve", c.status === "GENERATED", "approve");
+        const canDelete = !["GENERATING", "SCHEDULED", "SENDING"].includes(c.status);
+        const statusLabel = isGenerating ? "WAITING TO GENERATE" : c.status;
+        const summary = isGenerating
+          ? '<span class="loading">Azure OpenAI is creating the poster. This may take a few minutes…</span>'
+          : c.subject
+            ? `<strong>${escapeHtml(c.subject)}</strong>`
+            : c.error_message
+              ? `<span class="error">${escapeHtml(c.error_message)}</span>`
+              : "No poster generated yet.";
+        return `<article class="card">
+          <div class="top"><div><h3>${escapeHtml(c.topic)}</h3>
+          <div class="muted">${escapeHtml(c.audience_name)} · ${c.recipient_count} recipient(s) · created by ${escapeHtml(c.created_by)}</div>
+          <div class="muted">ID: ${escapeHtml(c.id)}</div></div><span class="badge">${escapeHtml(statusLabel)}</span></div>
+          <div class="summary">${summary}</div>
+          ${scheduleControls(c)}
+          <div class="actions">
+            ${button(c.id, "studio", c.status === "SENT" ? "View poster" : "Open poster studio", Boolean(c.poster_url) && !isGenerating)}
+            ${button(c.id, "generate", "Retry generation", !c.poster_url && ["DRAFT", "FAILED"].includes(c.status))}
+            ${approval}
+            ${button(c.id, "send", "Send now", c.status === "APPROVED", "send")}
+            ${button(c.id, "delete", "Delete", canDelete, "delete")}
+          </div></article>`;
+      }
+
+      async function loadCampaigns() {
+        try {
+          const rows = await request(api);
+          campaignsById = new Map(rows.map(row => [row.id, row]));
+          drawCampaigns();
+        } catch (error) { showMessage(error.message, true); }
+      }
+
+      function drawCampaigns() {
+        const rows = [...campaignsById.values()];
+        campaignsElement.innerHTML = rows.length
+          ? rows.map(renderCampaign).join("")
+          : '<p class="muted">No campaigns yet.</p>';
+      }
+
+      function showGenerating(campaign, message = "Waiting for Azure OpenAI to generate the poster…") {
+        campaignsById = new Map([
+          [campaign.id, { ...campaign, status: "GENERATING" }],
+          ...[...campaignsById.entries()].filter(([id]) => id !== campaign.id)
+        ]);
+        drawCampaigns();
+        showMessage(message);
+      }
+
+      function showMessage(text, error = false) {
+        messageElement.textContent = text;
+        messageElement.className = error ? "error" : "success";
+      }
+
+      async function openStudio(id) {
+        studioCampaignId = id;
+        studioDialog.showModal();
+        document.querySelector("#poster-wrap").innerHTML = '<p class="loading muted">Loading studio…</p>';
+        try { renderStudio(await request(`${api}/${id}/studio`)); }
+        catch (error) { document.querySelector("#poster-wrap").innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`; }
+      }
+
+      function renderStudio(data) {
+        const c = data.campaign;
+        const editable = !["SENDING", "SENT"].includes(c.status);
+        const selectedVersion = data.versions.find(version => version.selected_for_sending);
+        document.querySelector("#studio-title").textContent = c.topic;
+        document.querySelector("#studio-status").textContent = c.status;
+        [...document.querySelector("#chat-form").elements].forEach(element => { element.disabled = !editable; });
+        [...document.querySelector("#recipient-form").elements].forEach(element => { element.disabled = !editable; });
+        document.querySelector("#recipient-form").elements.recipients.value = c.recipient_emails.join("\n");
+        document.querySelector("#recipient-feedback").textContent = "";
+        document.querySelector("#poster-wrap").innerHTML = c.poster_url
+          ? `<img class="poster-preview" src="${c.poster_url}?t=${Date.now()}" alt="Current generated poster">`
+          : '<p class="empty-poster">No poster yet. Describe the poster you want in the chat box.</p>';
+        document.querySelector("#version-list").innerHTML = data.versions.length
+          ? data.versions.map(v => `<button type="button" class="version-button ${v.selected_for_sending ? "selected" : ""}" data-version-id="${escapeHtml(v.id)}" data-version-url="${escapeHtml(v.poster_url)}" data-version-selected="${v.selected_for_sending}" data-version-editable="${editable}">Version ${v.version_number}</button>`).join("")
+          : '<span class="muted">No versions yet</span>';
+        document.querySelector("#selected-version-note").textContent = selectedVersion
+          ? `Viewing Version ${selectedVersion.version_number}. This version will be used when you approve and send the campaign.`
+          : "No poster version is selected for sending.";
+        const messages = document.querySelector("#messages");
+        messages.innerHTML = data.messages.length
+          ? data.messages.map(m => `<div class="message ${m.role === "user" ? "user" : "assistant"}">${escapeHtml(m.content)}${m.poster_url ? `<small><a href="${m.poster_url}" target="_blank">Open this version</a></small>` : ""}</div>`).join("")
+          : '<p class="muted">Start by asking Azure OpenAI to create an infographic.</p>';
+        if (!editable) messages.innerHTML += '<p class="muted">This campaign has been sent and is read-only.</p>';
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      document.querySelector("#version-list").addEventListener("click", event => {
+        const target = event.target.closest("[data-version-id]");
+        if (!target || target.disabled) return;
+        document.querySelector("#poster-wrap").innerHTML = `<img class="poster-preview" src="${target.dataset.versionUrl}?t=${Date.now()}" alt="Saved poster version">`;
+        if (target.dataset.versionSelected === "true" || target.dataset.versionEditable !== "true") {
+          return;
+        }
+        const versionButtons = [...document.querySelectorAll("#version-list [data-version-id]")];
+        versionButtons.forEach(button => { button.disabled = true; });
+        document.querySelector("#selected-version-note").textContent = `${target.textContent} is now being set as the version to approve and send…`;
+        request(`${api}/${studioCampaignId}/versions/${target.dataset.versionId}/select`, { method: "POST" })
+          .then(async () => {
+            await loadCampaigns();
+            renderStudio(await request(`${api}/${studioCampaignId}/studio`));
+          })
+          .catch(error => {
+            showMessage(error.message, true);
+            versionButtons.forEach(button => { button.disabled = false; });
+          });
+      });
+
+      document.querySelector("#recipient-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const field = event.target.elements.recipients;
+        const recipients = field.value.split(/[\n,;]+/).map(value => value.trim()).filter(Boolean);
+        const feedback = document.querySelector("#recipient-feedback");
+        if (!recipients.length) {
+          feedback.className = "form-feedback error";
+          feedback.textContent = "Enter at least one recipient email address.";
+          return;
+        }
+        [...event.target.elements].forEach(element => { element.disabled = true; });
+        feedback.className = "form-feedback muted";
+        feedback.textContent = "Saving recipients…";
+        try {
+          await request(`${api}/${studioCampaignId}/recipients`, {
+            method: "PATCH",
+            body: JSON.stringify({ recipient_emails: recipients })
+          });
+          await loadCampaigns();
+          renderStudio(await request(`${api}/${studioCampaignId}/studio`));
+          feedback.className = "form-feedback success";
+          feedback.textContent = "Recipients saved. Approve the campaign again before sending.";
+        } catch (error) {
+          feedback.className = "form-feedback error";
+          feedback.textContent = error.message;
+          [...event.target.elements].forEach(element => { element.disabled = false; });
+        }
+      });
+
+      document.querySelector("#chat-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const field = event.target.elements.prompt;
+        const prompt = field.value.trim();
+        if (!prompt) return;
+        [...event.target.elements].forEach(element => { element.disabled = true; });
+        document.querySelector("#messages").insertAdjacentHTML("beforeend", '<div class="message assistant loading">Azure OpenAI is creating a new version. This can take a few minutes…</div>');
+        try {
+          await request(`${api}/${studioCampaignId}/chat`, { method: "POST", body: JSON.stringify({ prompt }) });
+          field.value = "";
+          await loadCampaigns();
+          renderStudio(await request(`${api}/${studioCampaignId}/studio`));
+        } catch (error) {
+          showMessage(error.message, true);
+          renderStudio(await request(`${api}/${studioCampaignId}/studio`));
+        }
+      });
+
+      campaignsElement.addEventListener("click", async event => {
+        const target = event.target.closest("button[data-action]");
+        if (!target || target.disabled) return;
+        const { id, action } = target.dataset;
+        if (action === "studio") return openStudio(id);
+        if (action === "send" && !confirm("Send this approved campaign now?")) return;
+        if (action === "delete") {
+          const campaign = campaignsById.get(id);
+          const warning = campaign?.status === "SENT"
+            ? "Delete this sent campaign and all poster versions? The email already delivered to recipients cannot be recalled."
+            : "Delete this campaign and all poster versions?";
+          if (!confirm(warning)) return;
+        }
+        if (action === "schedule") {
+          const field = document.querySelector(`[data-schedule-for="${CSS.escape(id)}"]`);
+          const scheduledDate = field?.value ? new Date(field.value) : null;
+          if (!scheduledDate || Number.isNaN(scheduledDate.getTime())) {
+            showMessage("Choose a valid future date and time.", true);
+            return;
+          }
+          if (scheduledDate.getTime() <= Date.now()) {
+            showMessage("The scheduled send time must be in the future.", true);
+            return;
+          }
+          target.disabled = true;
+          try {
+            await request(`${api}/${id}/schedule`, {
+              method: "POST",
+              body: JSON.stringify({ scheduled_for: scheduledDate.toISOString() })
+            });
+            showMessage(`Campaign scheduled for ${scheduledDate.toLocaleString()}.`);
+            await loadCampaigns();
+          } catch (error) {
+            showMessage(error.message, true);
+            target.disabled = false;
+          }
+          return;
+        }
+        target.disabled = true;
+        if (action === "generate") {
+          const campaign = campaignsById.get(id);
+          if (campaign) showGenerating(campaign);
+        }
+        try {
+          await request(action === "delete" ? `${api}/${id}` : `${api}/${id}/${action}`, { method: action === "delete" ? "DELETE" : "POST" });
+          showMessage(action === "delete" ? "Campaign deleted." : `Campaign ${action} completed.`);
+          await loadCampaigns();
+        } catch (error) { showMessage(error.message, true); target.disabled = false; }
+      });
+
+      document.querySelector("#create-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const submitButton = event.submitter;
+        if (submitButton) submitButton.disabled = true;
+        const form = new FormData(event.target);
+        const recipients = form.get("recipients").split(/[\n,;]+/).map(v => v.trim()).filter(Boolean);
+        try {
+          const campaign = await request(api, { method: "POST", body: JSON.stringify({
+            topic: form.get("topic"), audience_name: form.get("audience_name"),
+            additional_prompt: form.get("additional_prompt"), recipient_emails: recipients
+          }) });
+          event.target.reset();
+          showGenerating(
+            campaign,
+            "Campaign created. Waiting for Azure OpenAI to generate the poster…"
+          );
+          await request(`${api}/${campaign.id}/generate`, { method: "POST" });
+          showMessage("Poster generated. Open the poster studio to review or request changes.");
+          await loadCampaigns();
+        } catch (error) {
+          showMessage(error.message, true);
+          await loadCampaigns();
+        } finally {
+          if (submitButton) submitButton.disabled = false;
+        }
+      });
+
+      document.querySelector("#close-studio").addEventListener("click", () => studioDialog.close());
+
+      async function initialize() {
+        const authError = new URLSearchParams(location.search).get("auth_error");
+        try {
+          const user = await request("/api/auth/me");
+          csrfToken = user.csrf_token || "";
+          document.querySelector("#auth-controls").innerHTML = `<div class="auth-identity"><strong>${escapeHtml(user.name || user.email)}</strong><small>${user.development_bypass ? "Development mode" : "Signed in with Microsoft"}</small></div>${user.development_bypass ? "" : '<a class="button" href="/auth/logout">Sign out</a>'}`;
+          document.querySelector("#sign-in-panel").hidden = true;
+          document.querySelector("#app-content").hidden = false;
+          await loadCampaigns();
+        } catch (error) {
+          document.querySelector("#app-content").hidden = true;
+          document.querySelector("#sign-in-panel").hidden = false;
+          document.querySelector("#auth-controls").innerHTML = '<a class="button" href="/auth/login">Sign in</a>';
+          document.querySelector("#auth-error").textContent = authError ? `Microsoft sign-in failed: ${authError}` : (error.status === 401 ? "" : error.message);
+        }
+      }
+      initialize();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+Add the official transparent company logo as:
+
+megawide-logo.png
+
+The application will automatically place it at the top of every generated
+poster. If the file is missing, a CYBERSECURITY AWARENESS text label is used.
